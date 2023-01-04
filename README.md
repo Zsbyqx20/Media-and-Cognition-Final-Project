@@ -16,9 +16,9 @@ For **camera pair building**, `@Zuo` had designed the basic frame structure on P
 
 The baseline of the camera pairs is about **6 cm**, and here is the photo of it below:
 
-<center class="half">
-<img src="./attachments/stereo_camera_frame.jpg" width=400 align=center>
-</center>
+<p align="middle">
+    <img src="./attachments/stereo_camera_frame.jpg" width=400 align=center>
+</p>
 
 ---
 
@@ -32,16 +32,26 @@ The matrix K1,D1,K2,D2,R,T,E,F,R1,R2,P1,P2,Q had been saved in the file. To extr
 
 For **stereo disparity estimation**, `@Liu` had referred to the work conducted by  `Haofei Xu,etc` in 2022, which is called "**Unifying Flow, Stereo and Depth Estimation**", with one network structure named "unimatch". This is "a unified dense correspondence matching formulation and model for 3 tasks", which include optical flow, disparity and depth estimation. The link to this work is [here](https://arxiv.org/abs/2211.05783 "arxiv"), and the project page is [here](https://haofeixu.github.io/unimatch/ "unimatch").
 
-<center class="half">
-<img src="./attachments/unimatch_homepage.png" width=50%></center>
+<p align="middle">
+    <img src="./attachments/unimatch_homepage.png" width=400>
+</p>
 
 In this project, we have modified the code from that of unimatch, which supports better for opencv frames input. `@Liu` also prepared demo for both image-pair input and video-pair input, since it will be convenient to check the calculation speed for a single frame. (It is disappointing that opencv's `VideoWriter` has a slow speed to write one frame into a video, which is actually about 8~10 times slower than just getting the disparity alone)
 
 You are able to check the demo result of image pairs and video pairs in the `_result` folder. And you can get the same result if you run the code, this time in the `output` folder, and the results are certainly the same. The speed for a single frame or image is about 0.2~0.25 second, the data is got using an GPU (1 TITAN Xp). For video process you will see a much lower result because of low IO speed mentioned above.
 
-<center class="half">
-    <img src="./data/demo/stereo/images/left/left_01.jpg" width="250"/><img src="./data/demo/stereo/images/right/right_01.jpg" width="250"/><img src="./data/demo/stereo/images/_result/result_01.png" width="250"/>
-</center>
+<table>
+    <tr align="center">
+        <td>left image</td>
+        <td>right image</td>
+        <td>disparity image</td>
+    </tr>
+    <tr align="center">
+        <td><img src="./data/demo/stereo/images/left/left_01.jpg" width="250"/></td>
+        <td><img src="./data/demo/stereo/images/right/right_01.jpg" width="250"/></td>
+        <td><img src="./data/demo/stereo/images/_result/result_01.png" width="250"/></td>
+    </tr>
+</table>
 
 As the result above, the **modified model** works fine on the self-captured images. You can tell thin textures and clear boundary of objects, with distinct colors. In the video demo, I was **changing the position** of some object and **adding one small object**. Obviously, the result is smooth and fine.
 
