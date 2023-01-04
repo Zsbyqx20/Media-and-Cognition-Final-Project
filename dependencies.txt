@@ -1,0 +1,8 @@
+In order to run the code provided here without any unexpected difficulty,
+I recommend you to check if the listed python packages have been installed in your environment.
+
+- torch (with its relevant packages)
+- opencv-python
+- pillow
+- numpy
+- rich (this package is used to enhance the appearance of progress bar when processing a video pair)

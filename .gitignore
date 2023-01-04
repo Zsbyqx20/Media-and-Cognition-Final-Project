@@ -1,0 +1,8 @@
+### Specify files and folders that should not be uploaded
+
+## leave out the content of `output`
+output/stereo/image/*
+output/stereo/video/*
+
+## remove __pycache__
+**/__pycache__
