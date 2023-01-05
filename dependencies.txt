@@ -6,3 +6,5 @@ I recommend you to check if the listed python packages have been installed in yo
 - pillow
 - numpy
 - rich (this package is used to enhance the appearance of progress bar when processing a video pair)
+- psutil
+- pyyaml

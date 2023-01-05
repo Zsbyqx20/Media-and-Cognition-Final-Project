@@ -55,9 +55,9 @@ You are able to check the demo result of image pairs and video pairs in the `_re
 
 As the result above, the **modified model** works fine on the self-captured images. You can tell thin textures and clear boundary of objects, with distinct colors. In the video demo, I was **changing the position** of some object and **adding one small object**. Obviously, the result is smooth and fine.
 
-- For image pairs, run (or configure first, not necessary) `image_stereo.py`;
-- For video pairs, run `video_stereo.py`;
-- If you are interested in testing your own image/video pair, just put them in `data/demo/stereo/images/left` and `xxx/right` folders; remember to rename your images like `left_<whatever you like>.jpg` and `right_<the same as its left pair.jpg>`. For video pairs of your own, remember to specify both paths in the `.py` file.
+- For image pairs, run (or configure first, not necessary) `stereo_image.py`;
+- For video pairs, run `stereo_video.py`;
+- If you are interested in testing your own image/video pair, just put them in `data/demo/stereo/images/left` and `xxx/right` folders; remember to rename your images like `left_<whatever you like>.jpg` and `right_<the same as its left pair>.jpg`. For video pairs of your own, remember to specify both paths in the `.py` file.
 - To test on your own pairs, **you should change `./data/camera.yml` first**.
 
 ---
@@ -65,6 +65,39 @@ As the result above, the **modified model** works fine on the self-captured imag
 ## Part II - Object Detection
 
 ### Task 2.1 Basic Algorithms of Object Detection
+
+#### Algorithm 1. Yolo v5
+
+For **single-stage** object detection algorithm, `@Zuo` had referred to "**YOLOv5 v7.0 by ultralytics**" project, and the Github homepage is [here](https://github.com/ultralytics/yolov5 "yolov5").
+
+<p align="middle">
+<img src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov5/v70/splash.png" width=400>
+</p>
+
+Also, we have modified the code to better fit the project of our own. Similar to the file structure in Part I, the **demo input** for the algorithm is under the `data/demo/detection/yolov5/input` folder. You can preview the results in `data/demo/detection/yolov5/_result`.
+
+To get such results from **a code run**, just run `detect_yolo.py` in the root directory. The default model used by us is a COCO-128-class one, whose detailed information can be accessed in `data/coco128.yaml`. The part of the results are showed below.
+
+<table>
+    <tr align="center">
+        <td>original image</td>
+        <td>detected image</td>
+    </tr>
+    <tr align="center">
+        <td><img src="./data/demo/detection/yolov5/input/detection_01.jpg" width=250></td>
+        <td><img src="./data/demo/detection/yolov5/_result/detection_01.jpg" width=250></td>
+    </tr>
+    <tr align="center">
+        <td><img src="./data/demo/detection/yolov5/input/detection_04.jpg" width=250></td>
+        <td><img src="./data/demo/detection/yolov5/_result/detection_04.jpg" width=250></td>
+    </tr>
+</table>
+
+It can be seen that the algorithm has done a good job, for it does not predict anything wrong, and for it has pointed out all the object in the pictures **captured by our camera**. For the speed of the algorithm, the result can be got in **about 15~20 ms** per image.
+
+#### Algorithm 2. Cascade R-CNN
+
+For two-stage object detection algorithm, `@Zhao` and `@Peng`
 
 ### Task 2.2 Object Detection with Depth
 

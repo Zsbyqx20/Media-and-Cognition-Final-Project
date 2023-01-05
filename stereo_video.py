@@ -1,4 +1,5 @@
 import os
+import warnings
 
 import cv2
 import numpy as np
@@ -6,8 +7,8 @@ import torch
 import torch.nn.functional as F
 from rich.progress import track
 
-from model.unimatch import UniMatch
-from utils import utils
+from models.unimatch import UniMatch
+from utils import stereo_util
 
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
@@ -35,6 +36,7 @@ if __name__ == '__main__':
     device = torch.device("cuda")
     assert os.path.exists(left_src) and os.path.exists(right_src)
     print("=> initialization start.")
+    warnings.filterwarnings('ignore')
 
     cap_left = cv2.VideoCapture(left_src)
     cap_right = cv2.VideoCapture(right_src)
@@ -64,16 +66,16 @@ if __name__ == '__main__':
     model.load_state_dict(checkpoint['model'], strict=False)
     model.eval()
     val_transform_list = [
-        utils.ToTensor(),
-        utils.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)
+        stereo_util.ToTensor(),
+        stereo_util.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)
     ]
-    val_transform = utils.Compose(val_transform_list)
+    val_transform = stereo_util.Compose(val_transform_list)
 
     for i in track(range(num_frames), description="[red]Generating..."):
         _, left_frame = cap_left.read()
         _, right_frame = cap_right.read()
 
-        left_rect, right_rect = utils.image_undistortion(left_frame, right_frame, "./data/camera.yml", inference_size[1], inference_size[0])
+        left_rect, right_rect = stereo_util.image_undistortion(left_frame, right_frame, "./data/camera.yml", inference_size[1], inference_size[0])
 
         sample = {"left":left_rect, "right":right_rect}
         sample = val_transform(sample)
