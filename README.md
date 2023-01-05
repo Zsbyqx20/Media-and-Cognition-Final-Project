@@ -77,7 +77,16 @@ For **single-stage** object detection algorithm, `@Zuo` had referred to "**YOLOv
 Also, we have modified the code to better fit the project of our own. Similar to the file structure in Part I, the **demo input** for the algorithm is under the `data/demo/detection/yolov5/input` folder. You can preview the results in `data/demo/detection/yolov5/_result`.
 
 To get such results from **a code run**, just run `detect_yolo.py` in the root directory. The default model used by us is a COCO-128-class one, whose detailed information can be accessed in `data/coco128.yaml`. The part of the results are showed below.
-
+<style>
+.center 
+{
+  width: auto;
+  display: table;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+<p class="center">
 <table>
     <tr align="center">
         <td>original image</td>
@@ -92,6 +101,7 @@ To get such results from **a code run**, just run `detect_yolo.py` in the root d
         <td><img src="./data/demo/detection/yolov5/_result/detection_04.jpg" width=250></td>
     </tr>
 </table>
+</p>
 
 It can be seen that the algorithm has done a good job, for it does not predict anything wrong, and for it has pointed out all the object in the pictures **captured by our camera**. For the speed of the algorithm, the result can be got in **about 15~20 ms** per image.
 
