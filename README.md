@@ -16,9 +16,9 @@ For **camera pair building**, `@Zuo` had designed the basic frame structure on P
 
 The baseline of the camera pairs is about **6 cm**, and here is the photo of it below:
 
-<center class="half">
-<img src="./attachments/stereo_camera_frame.jpg" width=400 align=center>
-</center>
+<p align="middle">
+    <img src="./attachments/stereo_camera_frame.jpg" width=400 align=center>
+</p>
 
 ---
 
@@ -32,22 +32,32 @@ The matrix K1,D1,K2,D2,R,T,E,F,R1,R2,P1,P2,Q had been saved in the file. To extr
 
 For **stereo disparity estimation**, `@Liu` had referred to the work conducted by  `Haofei Xu,etc` in 2022, which is called "**Unifying Flow, Stereo and Depth Estimation**", with one network structure named "unimatch". This is "a unified dense correspondence matching formulation and model for 3 tasks", which include optical flow, disparity and depth estimation. The link to this work is [here](https://arxiv.org/abs/2211.05783 "arxiv"), and the project page is [here](https://haofeixu.github.io/unimatch/ "unimatch").
 
-<center class="half">
-<img src="./attachments/unimatch_homepage.png" width=50%></center>
+<p align="middle">
+    <img src="./attachments/unimatch_homepage.png" width=400>
+</p>
 
 In this project, we have modified the code from that of unimatch, which supports better for opencv frames input. `@Liu` also prepared demo for both image-pair input and video-pair input, since it will be convenient to check the calculation speed for a single frame. (It is disappointing that opencv's `VideoWriter` has a slow speed to write one frame into a video, which is actually about 8~10 times slower than just getting the disparity alone)
 
 You are able to check the demo result of image pairs and video pairs in the `_result` folder. And you can get the same result if you run the code, this time in the `output` folder, and the results are certainly the same. The speed for a single frame or image is about 0.2~0.25 second, the data is got using an GPU (1 TITAN Xp). For video process you will see a much lower result because of low IO speed mentioned above.
 
-<center class="half">
-    <img src="./data/demo/stereo/images/left/left_01.jpg" width="250"/><img src="./data/demo/stereo/images/right/right_01.jpg" width="250"/><img src="./data/demo/stereo/images/_result/result_01.png" width="250"/>
-</center>
+<table>
+    <tr align="center">
+        <td>left image</td>
+        <td>right image</td>
+        <td>disparity image</td>
+    </tr>
+    <tr align="center">
+        <td><img src="./data/demo/stereo/images/left/left_01.jpg" width="250"/></td>
+        <td><img src="./data/demo/stereo/images/right/right_01.jpg" width="250"/></td>
+        <td><img src="./data/demo/stereo/images/_result/result_01.png" width="250"/></td>
+    </tr>
+</table>
 
 As the result above, the **modified model** works fine on the self-captured images. You can tell thin textures and clear boundary of objects, with distinct colors. In the video demo, I was **changing the position** of some object and **adding one small object**. Obviously, the result is smooth and fine.
 
-- For image pairs, run (or configure first, not necessary) `image_stereo.py`;
-- For video pairs, run `video_stereo.py`;
-- If you are interested in testing your own image/video pair, just put them in `data/demo/stereo/images/left` and `xxx/right` folders; remember to rename your images like `left_<whatever you like>.jpg` and `right_<the same as its left pair.jpg>`. For video pairs of your own, remember to specify both paths in the `.py` file.
+- For image pairs, run (or configure first, not necessary) `stereo_image.py`;
+- For video pairs, run `stereo_video.py`;
+- If you are interested in testing your own image/video pair, just put them in `data/demo/stereo/images/left` and `xxx/right` folders; remember to rename your images like `left_<whatever you like>.jpg` and `right_<the same as its left pair>.jpg`. For video pairs of your own, remember to specify both paths in the `.py` file.
 - To test on your own pairs, **you should change `./data/camera.yml` first**.
 
 ---
@@ -55,6 +65,49 @@ As the result above, the **modified model** works fine on the self-captured imag
 ## Part II - Object Detection
 
 ### Task 2.1 Basic Algorithms of Object Detection
+
+#### Algorithm 1. Yolo v5
+
+For **single-stage** object detection algorithm, `@Zuo` had referred to "**YOLOv5 v7.0 by ultralytics**" project, and the Github homepage is [here](https://github.com/ultralytics/yolov5 "yolov5").
+
+<p align="middle">
+<img src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov5/v70/splash.png" width=400>
+</p>
+
+Also, we have modified the code to better fit the project of our own. Similar to the file structure in Part I, the **demo input** for the algorithm is under the `data/demo/detection/yolov5/input` folder. You can preview the results in `data/demo/detection/yolov5/_result`.
+
+To get such results from **a code run**, just run `detect_yolo.py` in the root directory. The default model used by us is a COCO-128-class one, whose detailed information can be accessed in `data/coco128.yaml`. The part of the results are showed below.
+<style>
+.center 
+{
+  width: auto;
+  display: table;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+<p class="center">
+<table>
+    <tr align="center">
+        <td>original image</td>
+        <td>detected image</td>
+    </tr>
+    <tr align="center">
+        <td><img src="./data/demo/detection/yolov5/input/detection_01.jpg" width=250></td>
+        <td><img src="./data/demo/detection/yolov5/_result/detection_01.jpg" width=250></td>
+    </tr>
+    <tr align="center">
+        <td><img src="./data/demo/detection/yolov5/input/detection_04.jpg" width=250></td>
+        <td><img src="./data/demo/detection/yolov5/_result/detection_04.jpg" width=250></td>
+    </tr>
+</table>
+</p>
+
+It can be seen that the algorithm has done a good job, for it does not predict anything wrong, and for it has pointed out all the object in the pictures **captured by our camera**. For the speed of the algorithm, the result can be got in **about 15~20 ms** per image.
+
+#### Algorithm 2. Cascade R-CNN
+
+For two-stage object detection algorithm, `@Zhao` and `@Peng`
 
 ### Task 2.2 Object Detection with Depth
 

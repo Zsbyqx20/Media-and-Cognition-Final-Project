@@ -1,5 +1,6 @@
 import os
 import time
+import warnings
 
 import cv2
 import numpy as np
@@ -7,8 +8,8 @@ import torch
 import torch.nn.functional as F
 from PIL import Image
 
-from model.unimatch import UniMatch
-from utils import utils
+from models.unimatch import UniMatch
+from utils import stereo_util
 
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
@@ -33,6 +34,7 @@ if __name__ == '__main__':
     np.random.seed(1107)
     torch.backends.cudnn.benchmark = True
     device = torch.device("cuda")
+    warnings.filterwarnings('ignore')
 
     if refresh_output:
         for history_output in os.listdir(output_path):
@@ -47,12 +49,12 @@ if __name__ == '__main__':
     model.load_state_dict(checkpoint['model'], strict=False)
     model.eval()
     val_transform_list = [
-        utils.ToTensor(),
-        utils.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)
+        stereo_util.ToTensor(),
+        stereo_util.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)
     ]
-    val_transform = utils.Compose(val_transform_list)
+    val_transform = stereo_util.Compose(val_transform_list)
 
-    image_pairs = utils.parse_image_directory(image_pair_root)
+    image_pairs = stereo_util.parse_image_directory(image_pair_root)
     print(f"=> {len(image_pairs)} pairs of images has been found.")
     for idx, image_pair in enumerate(image_pairs):
         print(f"=> start processing pair {idx + 1}.")
@@ -60,7 +62,7 @@ if __name__ == '__main__':
         left_frame = np.array(Image.open(image_pair["left"]).convert("RGB")).astype(np.float32)
         right_frame = np.array(Image.open(image_pair["right"]).convert("RGB")).astype(np.float32)
 
-        left_rect, right_rect = utils.image_undistortion(left_frame, right_frame, "./data/camera.yml", inference_size[1], inference_size[0])
+        left_rect, right_rect = stereo_util.image_undistortion(left_frame, right_frame, "./data/camera.yml", inference_size[1], inference_size[0])
         sample = {"left":left_rect, "right":right_rect}
         sample = val_transform(sample)
         left:torch.Tensor = sample["left"].to(device).unsqueeze(0)

@@ -3,6 +3,10 @@
 ## leave out the content of `output`
 output/stereo/image/*
 output/stereo/video/*
+output/detection/yolov5/*
 
 ## remove __pycache__
 **/__pycache__
+
+## cancel upload model
+data/pretrained/*
