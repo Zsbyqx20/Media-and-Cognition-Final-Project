@@ -2,6 +2,7 @@ from __future__ import division
 
 import os
 import re
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -105,6 +106,39 @@ def parse_image_directory(root:str, left_sub:str="left", right_sub:str="right"):
                 result.append({"left": pair_left, "right": pair_right, "prefix": prefix})
                 right_image_list.remove(right_name)
     return result
+
+
+def parse_dir(root:Path, left_sub:str="left", right_sub:str="right"):
+    assert root.exists()
+    left_img_dir = root / left_sub
+    right_img_dir = root / right_sub
+    left_img_info = []
+    right_img_info = []
+
+    for img in list(left_img_dir.iterdir()):
+        metadata = {}
+        if img.suffix not in [".jpg", ".png"]:
+            print(f"=> file {str(img)} is not a valid format of image; it will be ignored.")
+            continue
+        metadata["full"] = str(img)
+        metadata["prefix"] = img.stem[5:]
+        left_img_info.append(metadata)
+    for img in list(right_img_dir.iterdir()):
+        metadata = {}
+        if img.suffix not in [".jpg", ".png"]:
+            print(f"=> file {str(img)} is not a valid format of image; it will be ignored.")
+            continue
+        metadata["full"] = str(img)
+        metadata["prefix"] = img.stem[6:]
+        right_img_info.append(metadata)
+    match_list = []
+    for info_l in left_img_info:
+        for info_r in right_img_info:
+            if info_l["prefix"] == info_r["prefix"]:
+                match_list.append({"left": info_l["full"], "right":info_r["full"], "prefix":info_r["prefix"]})
+                right_img_info.remove(info_r)
+    return match_list
+
 
 def image_undistortion(left_frame:np.ndarray, right_frame:np.ndarray, coeff_src:str, width:int, height:int):
     K1, D1, K2, D2, _, _, _, _, R1, R2, P1, P2, _ = load_stereo_coefficients(coeff_src)

@@ -10,3 +10,6 @@ output/detection/yolov5/*
 
 ## cancel upload model
 data/pretrained/*
+
+## remove .ipynb test files
+*.ipynb

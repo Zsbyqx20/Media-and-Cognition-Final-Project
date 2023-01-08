@@ -5,8 +5,17 @@
 > Teacher: Fang Lu
 >
 > Team: Liu Guohong, Zuo Tianwei, Peng Qinhe, Zhao Han
->
-> Before running the code, remember to read `dependencies.txt` first.
+
+## Part 0 - Prerequisites
+
+You can get the models needed through this link: [gm_stereo.pth](https://cloud.tsinghua.edu.cn/smart-link/0c09cee3-2097-4c22-9158-0d522ed64a8f/)(29.5M) and [yolov5x.pt](https://cloud.tsinghua.edu.cn/smart-link/25df38b7-ebd6-42f9-a2be-ef65d9269f7d/)(174.1M), the latter can be automatically downloaded when the code is running. All the code has been tested on Python 3.9.12.
+
+Some packages you might need to install first:
+
+* **rich** (for better appearance of progress bar in stereo video generating)
+* **pyyaml** (for extracting information from yaml files in yolo)
+* **torch**, **numpy**, **cv2** (basic packages)
+* **pathlib** (default installed after Python 3.6)
 
 ## Part I - Stereo Camera
 
@@ -130,8 +139,23 @@ For depth embedding in Object Detection algorithms, `@Liu` have designed a simpl
     </tr>
 </table>
 
-The main idea of the method is simple, which is using the depth information to eliminate those whose depth characteristics is different from the expected object we want to detect. Since we **do not have one RGBD dataset** taken by our own stereo camera, it is hard for us to use a existing deep learning method to realize the target in a complex situation. 
+The main idea of the method is simple, which is using the depth information to eliminate those whose depth characteristics is different from the expected object we want to detect. Since we **do not have one RGBD dataset** taken by our own stereo camera, it is hard for us to use a existing deep learning method to realize the target in a complex situation.
 
-As a result, the prior knowledge of the depth of the object we want to detect is very important for the mothod to work well. In order to test it efficiently, we choose to make it work on images and real objects. As a common prior knowledge, real objects' detection result would have a sharp decrease where foreground and background meet, but for a photo it is impossible. Based on this idea, we try to extract the gradient of the depth image using **Sober** filter. After that, setting an gradient threshold for the detection would efficiently eliminate flatten photos, just like the right result in the table.
+As a result, the prior knowledge of the depth of the object we want to detect is very important for the mothod to work well. In order to test it efficiently, we choose to make it work on images and real objects. As a common prior knowledge, real objects' detection result would have a sharp decrease where foreground and background meet, but for a photo it is impossible. Based on this idea, we try to extract the gradient of the depth image using **Sober** filter.
+
+Here is the **gradient** of both detection bboxes, and it can be seen that there are obvious difference between them. To better check the **gradient distribution**, another plot has been taken to show the range of gradients in both bboxes. Obviously, the first image does not have a gradient **larger than 5**, while the second has a max value of **almost 250**, on which we can distinguish them.
+
+<table align="middle">
+    <tr>
+        <td>gradients on images</td>
+        <td>gradients distribution</td>
+    </tr>
+    <tr>
+        <td><img src="attachments/depth-gradient.png" width=400></td>
+        <td><img src="attachments/gradient-distribution.png" width=250></td>
+    </tr>
+</table>
+
+After that, setting an gradient threshold for the detection would efficiently eliminate flatten photos, just like the result in the table.
 
 ### Task 2.3 PANDA Challenge

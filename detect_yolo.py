@@ -1,5 +1,3 @@
-import os
-import shutil
 from pathlib import Path
 
 import cv2
@@ -56,12 +54,19 @@ def main():
 
     # the constant below is correspond to the model or result
     # do not edit them unless you know what you are doing
+    save_dir = Path(save_dir)
+    print("=> check path existence.")
+    if (save_dir / "labels").exists() is False:
+        (save_dir / "labels").mkdir(parents=True)
+        print("=> output path not exist. create a new one already.")
 
     if refresh_output:
-        if os.path.exists(save_dir):
-            shutil.rmtree(save_dir)
-        os.mkdir(save_dir)
-        os.mkdir(os.path.join(save_dir, "labels"))
+        for path in save_dir.iterdir():
+            if path.is_file():
+                path.unlink()
+            else:
+                for subpath in path.iterdir():
+                    subpath.unlink()
         print("=> clear history output successfully.")
     
     if test_depth:
@@ -77,7 +82,6 @@ def main():
     model.warmup(imgsz=(1, 3, *imgsz))  # warmup
     seen = 0
     dt = (Profile(), Profile(), Profile())
-    save_dir = Path(save_dir)
 
     for path, im, im0s, _, s in dataset:
         with dt[0]:
