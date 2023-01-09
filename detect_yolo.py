@@ -1,5 +1,3 @@
-import os
-import shutil
 from pathlib import Path
 
 import cv2
@@ -7,32 +5,53 @@ import torch
 
 from models.common import DetectMultiBackend
 from utils.dataloaders import LoadImages
+from utils.detection_utils import label_choice
 from utils.general import Profile, non_max_suppression, scale_boxes, xyxy2xywh
 from utils.plots import Annotator, colors
 
 
 @torch.inference_mode()
 def main():
-    # modify your weights file and input image directory here
+    # modify your weights file and input image directory here;
+    # if you are going to test depth choice, set "test_depth=True" and the source will be
+    #   modified automatically to depth_dir, and use the depth information in `depth-file`
+
     weights = "data/pretrained/yolov5x.pt"
     imgsz = (640, 480)
-    source = "data/demo/detection/yolov5/input"
-
     data = "data/coco128.yaml"
     classes = None
     save_dir = "output/detection/yolov5"
+
+    test_depth = True
     refresh_output = True
+
+    source = "data/demo/detection/yolov5/input"
+    
+    depth_dir = "data/demo/detection/depth/input"
+    depth_file = "data/demo/detection/depth/input/demo-depth.npy"
+    depth_save_dir = "output/detection/depth"
 
     # the constant below is correspond to the model or result
     # do not edit them unless you know what you are doing
+    if test_depth:
+        source = depth_dir
+        save_dir = depth_save_dir
+    else:
+        depth_file = None
+    save_dir = Path(save_dir)
+    print("=> check path existence.")
+    if (save_dir / "labels").exists() is False:
+        (save_dir / "labels").mkdir(parents=True)
+        print("=> output path not exist. create a new one already.")
 
     if refresh_output:
-        shutil.rmtree(save_dir)
+        for path in save_dir.iterdir():
+            if path.is_file():
+                path.unlink()
+            else:
+                for subpath in path.iterdir():
+                    subpath.unlink()
         print("=> clear history output successfully.")
-    if not os.path.exists(save_dir):
-        os.mkdir(save_dir)
-    if not os.path.exists(os.path.join(save_dir, "labels")):
-        os.mkdir(os.path.join(save_dir, "labels"))
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = DetectMultiBackend(weights, device=device, dnn=False, data=data, fp16=False)
@@ -42,7 +61,6 @@ def main():
     model.warmup(imgsz=(1, 3, *imgsz))  # warmup
     seen = 0
     dt = (Profile(), Profile(), Profile())
-    save_dir = Path(save_dir)
 
     for path, im, im0s, _, s in dataset:
         with dt[0]:
@@ -73,15 +91,17 @@ def main():
                 for *xyxy, conf, cls in reversed(det):
                     xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
                     line = (cls, *xywh)  # label format
-                    with open(f'{txt_path}.txt', 'a') as f:
-                        f.write(('%g ' * len(line)).rstrip() % line + '\n')
                     c = int(cls)  # integer class
                     label = f'{names[c]} {conf:.2f}'
-                    annotator.box_label(xyxy, label, color=colors(c, True))
+                    inte_xy = label_choice(xyxy, im0, depth_file)
+                    if inte_xy != -1:
+                        with open(f'{txt_path}.txt', 'a') as f:
+                            f.write(('%g ' * len(line)).rstrip() % line + '\n')
+                        annotator.box_label(xyxy, label, color=colors(c, True))
             im0 = annotator.result()
             cv2.imwrite(save_path, im0)
         
-        print(f"=> {s}{'' if len(det) else '(no detections), '}{dt[1].dt * 1E3:.1f}ms")
+        # print(f"=> {s}{'' if len(det) else '(no detections), '}{dt[1].dt * 1E3:.1f}ms")
 
     t = tuple(x.t / seen * 1E3 for x in dt)
     print(f'=> Speed: %.1fms pre-process, %.1fms inference, %.1fms NMS per image at shape {(1, 3, *imgsz)}' % t)

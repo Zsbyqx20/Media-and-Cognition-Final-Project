@@ -1,5 +1,5 @@
-import os
 import warnings
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -13,7 +13,8 @@ from utils import stereo_util
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 
-if __name__ == '__main__':
+@torch.inference_mode()
+def main():
     # you can set the image size and output path of the program here
     # for video pairs you are required to point out where left and right videos are
     inference_size = [480, 640]
@@ -28,18 +29,20 @@ if __name__ == '__main__':
     corr_radius_list = [-1,4]
     prop_radius_list = [-1,2]
     refresh_output = True
-    resume = "./data/pretrained/gmstereo.pth"
+    resume = "./data/pretrained/gm_stereo.pth"
     torch.manual_seed(1107)
     torch.cuda.manual_seed(1107)
     np.random.seed(1107)
     torch.backends.cudnn.benchmark = True
-    device = torch.device("cuda")
-    assert os.path.exists(left_src) and os.path.exists(right_src)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    left_src = Path(left_src)
+    right_src = Path(right_src)
+    assert left_src.exists() and right_src.exists()
     print("=> initialization start.")
     warnings.filterwarnings('ignore')
 
-    cap_left = cv2.VideoCapture(left_src)
-    cap_right = cv2.VideoCapture(right_src)
+    cap_left = cv2.VideoCapture(str(left_src))
+    cap_right = cv2.VideoCapture(str(right_src))
 
     cap_left.set(cv2.CAP_PROP_FRAME_WIDTH, inference_size[1])
     cap_left.set(cv2.CAP_PROP_FRAME_HEIGHT, inference_size[0])
@@ -50,12 +53,18 @@ if __name__ == '__main__':
     fps = cap_left.get(cv2.CAP_PROP_FPS)
     num_frames = int(cap_left.get(cv2.CAP_PROP_FRAME_COUNT))
 
+    output_path = Path(output_path)
+    print("=> check path existence.")
+    if output_path.exists() is False:
+        output_path.mkdir(parents=True)
+        print("=> output path not exist. create a new one already.")
+
     if refresh_output:
-        for history_output in os.listdir(output_path):
-            os.remove(os.path.join(output_path, history_output))
+        for path in output_path.iterdir():
+            path.unlink()
         print("=> clear history output successfully.")
 
-    save_name = os.path.join(output_path, "result.mp4")
+    save_name = str(output_path / "result.mp4")
     out = cv2.VideoWriter(save_name, fourcc, fps, (inference_size[1], inference_size[0]))
 
     model = UniMatch(feature_channels=128, num_scales=2, upsample_factor=4, 
@@ -114,3 +123,6 @@ if __name__ == '__main__':
         out.write(disp)
     
     print(f"=> the result of video pair has been saved into {save_name}.")
+
+if __name__ == '__main__':
+    main()

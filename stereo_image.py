@@ -1,6 +1,6 @@
-import os
 import time
 import warnings
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -14,8 +14,8 @@ from utils import stereo_util
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 
-
-if __name__ == '__main__':
+@torch.inference_mode()
+def main():
     # you can set the image size and output path of the program here
     # for image pairs the program will automatically examine available pairs, just set the root path
     inference_size = [480, 640]
@@ -28,17 +28,24 @@ if __name__ == '__main__':
     corr_radius_list = [-1,4]
     prop_radius_list = [-1,2]
     refresh_output = True
-    resume = "./data/pretrained/gmstereo.pth"
+    resume = "./data/pretrained/gm_stereo.pth"
+    print("=> initialization start.")
     torch.manual_seed(1107)
     torch.cuda.manual_seed(1107)
     np.random.seed(1107)
     torch.backends.cudnn.benchmark = True
-    device = torch.device("cuda")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     warnings.filterwarnings('ignore')
 
+    output_path = Path(output_path)
+    print("=> check path existence.")
+    if output_path.exists() is False:
+        output_path.mkdir(parents=True)
+        print("=> output path not exist. create a new one already.")
+
     if refresh_output:
-        for history_output in os.listdir(output_path):
-            os.remove(os.path.join(output_path, history_output))
+        for path in output_path.iterdir():
+            path.unlink()
         print("=> clear history output successfully.")
 
     model = UniMatch(feature_channels=128, num_scales=2, upsample_factor=4, 
@@ -54,7 +61,7 @@ if __name__ == '__main__':
     ]
     val_transform = stereo_util.Compose(val_transform_list)
 
-    image_pairs = stereo_util.parse_image_directory(image_pair_root)
+    image_pairs = stereo_util.parse_dir(Path(image_pair_root))
     print(f"=> {len(image_pairs)} pairs of images has been found.")
     for idx, image_pair in enumerate(image_pairs):
         print(f"=> start processing pair {idx + 1}.")
@@ -98,8 +105,11 @@ if __name__ == '__main__':
         disp = cv2.applyColorMap(disp, cv2.COLORMAP_INFERNO)
 
         save_name = "result_" + image_pair["prefix"] + ".png"
-        save_name = os.path.join(output_path, save_name)
+        save_name = str(output_path / save_name)
 
         cv2.imwrite(save_name, disp)
         print(f"=> the result of pair {idx + 1} has been saved into {save_name}.")
-        print(f"=> time cost for pair {idx + 1} is {round(time.time() - start_time, 3)} seconds.")
+        print(f"=> time cost for pair {idx + 1} is {round(time.time() - start_time, 3)} seconds.")    
+
+if __name__ == '__main__':
+    main()
