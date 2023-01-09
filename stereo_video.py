@@ -13,7 +13,8 @@ from utils import stereo_util
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 
-if __name__ == '__main__':
+@torch.inference_mode()
+def main():
     # you can set the image size and output path of the program here
     # for video pairs you are required to point out where left and right videos are
     inference_size = [480, 640]
@@ -33,7 +34,7 @@ if __name__ == '__main__':
     torch.cuda.manual_seed(1107)
     np.random.seed(1107)
     torch.backends.cudnn.benchmark = True
-    device = torch.device("cuda")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     left_src = Path(left_src)
     right_src = Path(right_src)
     assert left_src.exists() and right_src.exists()
@@ -122,3 +123,6 @@ if __name__ == '__main__':
         out.write(disp)
     
     print(f"=> the result of video pair has been saved into {save_name}.")
+
+if __name__ == '__main__':
+    main()

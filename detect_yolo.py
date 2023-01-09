@@ -1,35 +1,13 @@
 from pathlib import Path
 
 import cv2
-import numpy as np
 import torch
 
 from models.common import DetectMultiBackend
 from utils.dataloaders import LoadImages
+from utils.detection_utils import label_choice
 from utils.general import Profile, non_max_suppression, scale_boxes, xyxy2xywh
 from utils.plots import Annotator, colors
-
-
-def label_choice(candidate:torch.Tensor, original_img:np.ndarray, depth_file:str=None):
-    if depth_file is None:
-        return candidate
-    depth_information = np.load(depth_file)
-    undistortion_border = original_img.sum(axis=2)
-    depth_information[undistortion_border == 0] = 0
-
-    xstart = int(candidate[1])
-    xend = int(candidate[3])
-    ystart = int(candidate[0])
-    yend = int(candidate[2])
-
-    bbox = depth_information[xstart:xend, ystart:yend]
-    sobel_bbox_x = cv2.Sobel(bbox, cv2.CV_64F, 1, 0)
-    sobel_bbox_y = cv2.Sobel(bbox, cv2.CV_64F, 0, 1)
-    gm = cv2.sqrt(sobel_bbox_x ** 2 + sobel_bbox_y ** 2)
-    if gm.max() < 20:
-        return -1
-    else:
-        return candidate
 
 
 @torch.inference_mode()
@@ -49,11 +27,17 @@ def main():
 
     source = "data/demo/detection/yolov5/input"
     
-    depth_dir = "data/demo/detection/yolov5/depth_input"
-    depth_file = "data/demo/detection/yolov5/depth_input/demo-depth.npy"
+    depth_dir = "data/demo/detection/depth/input"
+    depth_file = "data/demo/detection/depth/input/demo-depth.npy"
+    depth_save_dir = "output/detection/depth"
 
     # the constant below is correspond to the model or result
     # do not edit them unless you know what you are doing
+    if test_depth:
+        source = depth_dir
+        save_dir = depth_save_dir
+    else:
+        depth_file = None
     save_dir = Path(save_dir)
     print("=> check path existence.")
     if (save_dir / "labels").exists() is False:
@@ -68,11 +52,6 @@ def main():
                 for subpath in path.iterdir():
                     subpath.unlink()
         print("=> clear history output successfully.")
-    
-    if test_depth:
-        source = depth_dir
-    else:
-        depth_file = None
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = DetectMultiBackend(weights, device=device, dnn=False, data=data, fp16=False)

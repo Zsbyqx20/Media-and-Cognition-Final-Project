@@ -14,8 +14,8 @@ from utils import stereo_util
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 
-
-if __name__ == '__main__':
+@torch.inference_mode()
+def main():
     # you can set the image size and output path of the program here
     # for image pairs the program will automatically examine available pairs, just set the root path
     inference_size = [480, 640]
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     torch.cuda.manual_seed(1107)
     np.random.seed(1107)
     torch.backends.cudnn.benchmark = True
-    device = torch.device("cuda")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     warnings.filterwarnings('ignore')
 
     output_path = Path(output_path)
@@ -109,4 +109,7 @@ if __name__ == '__main__':
 
         cv2.imwrite(save_name, disp)
         print(f"=> the result of pair {idx + 1} has been saved into {save_name}.")
-        print(f"=> time cost for pair {idx + 1} is {round(time.time() - start_time, 3)} seconds.")
+        print(f"=> time cost for pair {idx + 1} is {round(time.time() - start_time, 3)} seconds.")    
+
+if __name__ == '__main__':
+    main()

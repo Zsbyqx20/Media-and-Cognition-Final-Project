@@ -87,17 +87,6 @@ Also, we have modified the code to better fit the project of our own. Similar to
 
 To get such results from **a code run**, just run `detect_yolo.py` in the root directory. The default model used by us is a COCO-128-class one, whose detailed information can be accessed in `data/coco128.yaml`. The part of the results are showed below.
 
-<style>
-.center 
-{
-  width: auto;
-  display: table;
-  margin-left: auto;
-  margin-right: auto;
-}
-</style>
-
-<p class="center">
 <table>
     <tr align="center">
         <td>original image</td>
@@ -112,13 +101,18 @@ To get such results from **a code run**, just run `detect_yolo.py` in the root d
         <td><img src="./data/demo/detection/yolov5/_result/detection_04.jpg" width=250></td>
     </tr>
 </table>
-</p>
 
 It can be seen that the algorithm has done a good job, for it does not predict anything wrong, and for it has pointed out all the object in the pictures **captured by our camera**. For the speed of the algorithm, the result can be got in **about 15~20 ms** per image.
 
-#### Algorithm 2. Cascade R-CNN
+#### Algorithm 2. DETR
 
-For two-stage object detection algorithm, `@Zhao` and `@Peng`
+For two-stage object detection algorithm, `@Peng` has made contributions to DETR algorithm embedding, and the Github Homepage for this is [here](https://github.com/facebookresearch/detr).
+
+<p align="middle">
+<img src="attachments/DETR-page.png" width=400>
+</p>
+
+To test the result of DETR algorithm on the images taken by our cameras, you can run `./detect_detr.py` and get your output in the `output/detection/detr/` folder.
 
 ### Task 2.2 Object Detection with Depth
 
