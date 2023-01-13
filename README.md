@@ -8,13 +8,13 @@
 
 ## Part 0 - Prerequisites
 
-You can get the models needed through this link: [gm_stereo.pth](https://cloud.tsinghua.edu.cn/smart-link/0c09cee3-2097-4c22-9158-0d522ed64a8f/)(29.5M) and [yolov5x.pt](https://cloud.tsinghua.edu.cn/smart-link/25df38b7-ebd6-42f9-a2be-ef65d9269f7d/)(174.1M), the latter can be automatically downloaded when the code is running. All the code has been tested on Python 3.9.12.
+You can get the models needed through this link: [gm_stereo.pth](https://cloud.tsinghua.edu.cn/smart-link/0c09cee3-2097-4c22-9158-0d522ed64a8f/)(29.5M) and [yolov5x.pt](https://cloud.tsinghua.edu.cn/smart-link/25df38b7-ebd6-42f9-a2be-ef65d9269f7d/)(174.1M), (the passwords is 20230101); the **yolov5x.pt** and the models used by **DETR** can be automatically downloaded when the code is running. All the code has been tested on Python 3.9.12.
 
 Some packages you might need to install first:
 
 * **rich** (for better appearance of progress bar in stereo video generating)
 * **pyyaml** (for extracting information from yaml files in yolo)
-* **torch**, **numpy**, **cv2** (basic packages)
+* **torch**, **numpy**, **cv2**, **PIL** (basic packages)
 * **pathlib** (default installed after Python 3.6)
 
 ## Part I - Stereo Camera
@@ -112,11 +112,36 @@ For two-stage object detection algorithm, `@Peng` has made contributions to DETR
 <img src="attachments/DETR-page.png" width=400>
 </p>
 
-To test the result of DETR algorithm on the images taken by our cameras, you can run `./detect_detr.py` and get your output in the `output/detection/detr/` folder.
+To test the result of DETR algorithm on the images taken by our cameras, you can run `./detect_detr.py` and get your output in the `output/detection/detr/` folder. You can set the specific folder path in the head of the file, and you can set the target classes you would like to detect or not detect in the result by modifying the variable `class_range` and `class_exclude`. You can preview the result in the `_result` folder under the same root of detr, and some results are showed below.
+
+<table>
+    <tr align="center">
+        <td>original image</td>
+        <td>detected image</td>
+    </tr>
+    <tr align="center">
+        <td>
+            <img src="data/demo/detection/detr/input/detection_0.jpg" width=250>
+        </td>
+        <td>
+            <img src="data/demo/detection/detr/_result/detection_0.jpg" width=320>
+        </td>
+    </tr>
+    <tr align="center">
+        <td>
+            <img src="data/demo/detection/detr/input/detection_4.jpg" width=250>
+        </td>
+        <td>
+            <img src="data/demo/detection/detr/_result/detection_4.jpg" width=320>
+        </td>
+    </tr>
+</table>
+
+Also, the result is perfect and satisfying on the images captured by our cameras.
 
 ### Task 2.2 Object Detection with Depth
 
-For depth embedding in Object Detection algorithms, `@Liu` have designed a simple but useful method to distinguish objects from a photograph with real objects, like the situation below: (You can find the right one in `data/demo/detection/yolov5/_result_depth` folder)
+For depth embedding in Object Detection algorithms, `@Liu` have designed a simple but useful method to distinguish objects from a photograph with real objects, like the situation below: (You can find the right one in `data/demo/detection/depth/_result` folder, and the result showed here is by **YOLOv5** so if you test it on **DETR** you may get another result with **slight difference** such as the width of the bbox or the color and the probabilty, etc.)
 
 <table>
     <tr align="center">
@@ -128,7 +153,7 @@ For depth embedding in Object Detection algorithms, `@Liu` have designed a simpl
             <img src="data/demo/detection/yolov5/_result/demo-depth.jpg" width=250>
         </td>
         <td>
-            <img src="data/demo/detection/yolov5/_result_depth/demo-depth.jpg" width=250>
+            <img src="data/demo/detection/depth/_result/demo-depth.jpg" width=250>
         </td>
     </tr>
 </table>
@@ -140,11 +165,11 @@ As a result, the prior knowledge of the depth of the object we want to detect is
 Here is the **gradient** of both detection bboxes, and it can be seen that there are obvious difference between them. To better check the **gradient distribution**, another plot has been taken to show the range of gradients in both bboxes. Obviously, the first image does not have a gradient **larger than 5**, while the second has a max value of **almost 250**, on which we can distinguish them.
 
 <table align="middle">
-    <tr>
+    <tr align="center">
         <td>gradients on images</td>
         <td>gradients distribution</td>
     </tr>
-    <tr>
+    <tr align="center">
         <td><img src="attachments/depth-gradient.png" width=400></td>
         <td><img src="attachments/gradient-distribution.png" width=250></td>
     </tr>

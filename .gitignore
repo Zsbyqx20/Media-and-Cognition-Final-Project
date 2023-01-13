@@ -11,3 +11,9 @@ data/pretrained/*
 
 ## remove .ipynb test files
 *.ipynb
+
+## remove panda test
+data/demo/panda/split/*
+
+## remove .npy for test
+*.npy

@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import cv2
@@ -22,17 +23,18 @@ def main():
     classes = None
     save_dir = "output/detection/yolov5"
 
-    test_depth = True
-    refresh_output = True
-
-    source = "data/demo/detection/yolov5/input"
-    
+    test_depth = False
+    test_panda = True
+    source = "data/demo/panda/split/split"
     depth_dir = "data/demo/detection/depth/input"
     depth_file = "data/demo/detection/depth/input/demo-depth.npy"
     depth_save_dir = "output/detection/depth"
 
     # the constant below is correspond to the model or result
     # do not edit them unless you know what you are doing
+    refresh_output = True
+    if test_panda:
+        classes = [0, 2, 5, 7]
     if test_depth:
         source = depth_dir
         save_dir = depth_save_dir
@@ -42,7 +44,10 @@ def main():
     print("=> check path existence.")
     if (save_dir / "labels").exists() is False:
         (save_dir / "labels").mkdir(parents=True)
-        print("=> output path not exist. create a new one already.")
+        print("=> labels output path not exist. create a new one already.")
+    if (save_dir / "json").exists() is False:
+        (save_dir / "json").mkdir(parents=True)
+        print("=> json output path not exist. create a new one already.")
 
     if refresh_output:
         for path in save_dir.iterdir():
@@ -62,6 +67,8 @@ def main():
     seen = 0
     dt = (Profile(), Profile(), Profile())
 
+    result_dict = []
+
     for path, im, im0s, _, s in dataset:
         with dt[0]:
             im = torch.from_numpy(im).to(model.device)
@@ -80,8 +87,9 @@ def main():
             p = Path(p)  # to Path
             save_path = str(save_dir / p.name)  # im.jpg
             txt_path = str(save_dir / 'labels' / p.stem) + ('' if dataset.mode == 'image' else f'_{frame}')  # im.txt
+            json_path = str(save_dir / 'json' / p.stem) + ".json"
             s += '%gx%g ' % im.shape[2:]  # print string
-            gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
+            # gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
             annotator = Annotator(im0, line_width=3, example=str(names))
             if len(det):
                 det[:, :4] = scale_boxes(im.shape[2:], det[:, :4], im0.shape).round()
@@ -89,17 +97,27 @@ def main():
                     n = (det[:, 5] == c).sum()  # detections per class
                     s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
                 for *xyxy, conf, cls in reversed(det):
-                    xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
-                    line = (cls, *xywh)  # label format
+                    if test_panda:
+                        x = int(xyxy[1].item()); y = int(xyxy[0].item()); w = int((xyxy[2] - xyxy[0]).item()); h = int((xyxy[3] - xyxy[1]).item())
+                        class_label = 2 if int(cls) == 0 else 1
+                        result = {"category_id":class_label, "bbox":[x,y,w,h]}
+                    # xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
+                    line = (cls, *xyxy)  # label format
                     c = int(cls)  # integer class
                     label = f'{names[c]} {conf:.2f}'
                     inte_xy = label_choice(xyxy, im0, depth_file)
                     if inte_xy != -1:
-                        with open(f'{txt_path}.txt', 'a') as f:
+                        with open(f'{txt_path}.txt', 'w') as f:
                             f.write(('%g ' * len(line)).rstrip() % line + '\n')
                         annotator.box_label(xyxy, label, color=colors(c, True))
+                        if test_panda:
+                            result_dict.append(result)
             im0 = annotator.result()
             cv2.imwrite(save_path, im0)
+        if test_panda:
+            result_json = json.dumps(result_dict, indent=4, ensure_ascii=False)
+            with open(json_path, 'w') as f:
+                f.write(result_json)
         
         # print(f"=> {s}{'' if len(det) else '(no detections), '}{dt[1].dt * 1E3:.1f}ms")
 
