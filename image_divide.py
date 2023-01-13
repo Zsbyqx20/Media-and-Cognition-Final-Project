@@ -21,12 +21,13 @@ adjust_matrix[3] = [2000, 0, 0, 0]          # 1-4
 adjust_matrix[4] = [500, 800, 0, 0]         # 2-1
 adjust_matrix[5] = [0, -800, 0, -300]       # 2-2
 adjust_matrix[6] = [-300, 0, -300, 0]       # 2-3
-adjust_matrix[7] = [0, 500, 0, 0]           # 2-4
+adjust_matrix[7] = [-150, 500, -950, -400]           # 2-4
 adjust_matrix[9] = [-1000, 0, 0, -300]      # 3-2
 adjust_matrix[10] = [-300, 0, -300, 0]         # 3-3
 
 for subpath in Path("data/demo/panda/split").iterdir():
-    subpath.unlink()
+    if subpath.is_file():
+        subpath.unlink()
 print("=> clear history output.")
 
 position_matrix += adjust_matrix
@@ -48,7 +49,7 @@ np.save("divide.npy", position_matrix)
 # 1-1, 1-2, 3-1, 1-3, 3-4, 4-4
 
 # finished
-# 4-1, 4-2
+# 4-1, 4-2, 2-1, 2-2, 3-2, 2-4
 
 # TODO
-# 2-1, 2-2, 3-2
+# 1-4, 2-3, 3-3
