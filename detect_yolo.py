@@ -7,7 +7,7 @@ import torch
 from models.common import DetectMultiBackend
 from utils.dataloaders import LoadImages
 from utils.detection_utils import label_choice
-from utils.general import Profile, non_max_suppression, scale_boxes, xyxy2xywh
+from utils.general import Profile, non_max_suppression, scale_boxes
 from utils.plots import Annotator, colors
 
 
@@ -24,8 +24,7 @@ def main():
     save_dir = "output/detection/yolov5"
 
     test_depth = False
-    test_panda = True
-    source = "data/demo/panda/split/split"
+    source = "data/demo/detection/yolov5/input"
     depth_dir = "data/demo/detection/depth/input"
     depth_file = "data/demo/detection/depth/input/demo-depth.npy"
     depth_save_dir = "output/detection/depth"
@@ -33,8 +32,6 @@ def main():
     # the constant below is correspond to the model or result
     # do not edit them unless you know what you are doing
     refresh_output = True
-    if test_panda:
-        classes = [0, 2, 5, 7]
     if test_depth:
         source = depth_dir
         save_dir = depth_save_dir
@@ -45,9 +42,6 @@ def main():
     if (save_dir / "labels").exists() is False:
         (save_dir / "labels").mkdir(parents=True)
         print("=> labels output path not exist. create a new one already.")
-    if (save_dir / "json").exists() is False:
-        (save_dir / "json").mkdir(parents=True)
-        print("=> json output path not exist. create a new one already.")
 
     if refresh_output:
         for path in save_dir.iterdir():
@@ -66,8 +60,6 @@ def main():
     model.warmup(imgsz=(1, 3, *imgsz))  # warmup
     seen = 0
     dt = (Profile(), Profile(), Profile())
-
-    result_dict = []
 
     for path, im, im0s, _, s in dataset:
         with dt[0]:
@@ -97,29 +89,16 @@ def main():
                     n = (det[:, 5] == c).sum()  # detections per class
                     s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
                 for *xyxy, conf, cls in reversed(det):
-                    if test_panda:
-                        x = int(xyxy[1].item()); y = int(xyxy[0].item()); w = int((xyxy[2] - xyxy[0]).item()); h = int((xyxy[3] - xyxy[1]).item())
-                        class_label = 2 if int(cls) == 0 else 1
-                        result = {"category_id":class_label, "bbox":[x,y,w,h]}
-                    # xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
                     line = (cls, *xyxy)  # label format
                     c = int(cls)  # integer class
                     label = f'{names[c]} {conf:.2f}'
                     inte_xy = label_choice(xyxy, im0, depth_file)
                     if inte_xy != -1:
-                        with open(f'{txt_path}.txt', 'w') as f:
+                        with open(f'{txt_path}.txt', 'a') as f:
                             f.write(('%g ' * len(line)).rstrip() % line + '\n')
                         annotator.box_label(xyxy, label, color=colors(c, True))
-                        if test_panda:
-                            result_dict.append(result)
             im0 = annotator.result()
             cv2.imwrite(save_path, im0)
-        if test_panda:
-            result_json = json.dumps(result_dict, indent=4, ensure_ascii=False)
-            with open(json_path, 'w') as f:
-                f.write(result_json)
-        
-        # print(f"=> {s}{'' if len(det) else '(no detections), '}{dt[1].dt * 1E3:.1f}ms")
 
     t = tuple(x.t / seen * 1E3 for x in dt)
     print(f'=> Speed: %.1fms pre-process, %.1fms inference, %.1fms NMS per image at shape {(1, 3, *imgsz)}' % t)
