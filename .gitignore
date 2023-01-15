@@ -14,3 +14,9 @@ data/pretrained/*
 
 ## remove panda test
 data/demo/panda/split/*
+
+## remove .npy files
+*.npy
+
+## remove image_divide.py
+_image_divide.py

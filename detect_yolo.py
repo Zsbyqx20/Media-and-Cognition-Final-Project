@@ -24,7 +24,7 @@ def main():
     save_dir = "output/detection/yolov5"
 
     test_depth = False
-    source = "data/demo/detection/yolov5/input"
+    source = "data/demo/panda/split/split"
     depth_dir = "data/demo/detection/depth/input"
     depth_file = "data/demo/detection/depth/input/demo-depth.npy"
     depth_save_dir = "output/detection/depth"

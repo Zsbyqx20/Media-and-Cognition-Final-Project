@@ -178,3 +178,9 @@ Here is the **gradient** of both detection bboxes, and it can be seen that there
 After that, setting an gradient threshold for the detection would efficiently eliminate flatten photos, just like the result in the table.
 
 ### Task 2.3 PANDA Challenge
+
+`@Liu` and `@Peng` have made contributions to the final result of the panda challenge. Just like the code structure above, you can directly run the code in `detect_panda.py` and preview the result in the `_result` folder.
+
+<p align="middle">
+<img src="data/demo/panda/_result/panda.jpg">
+</p>
