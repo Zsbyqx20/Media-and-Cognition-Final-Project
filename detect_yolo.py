@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import cv2
@@ -6,7 +7,7 @@ import torch
 from models.common import DetectMultiBackend
 from utils.dataloaders import LoadImages
 from utils.detection_utils import label_choice
-from utils.general import Profile, non_max_suppression, scale_boxes, xyxy2xywh
+from utils.general import Profile, non_max_suppression, scale_boxes
 from utils.plots import Annotator, colors
 
 
@@ -22,17 +23,15 @@ def main():
     classes = None
     save_dir = "output/detection/yolov5"
 
-    test_depth = True
-    refresh_output = True
-
-    source = "data/demo/detection/yolov5/input"
-    
+    test_depth = False
+    source = "data/demo/panda/split/split"
     depth_dir = "data/demo/detection/depth/input"
     depth_file = "data/demo/detection/depth/input/demo-depth.npy"
     depth_save_dir = "output/detection/depth"
 
     # the constant below is correspond to the model or result
     # do not edit them unless you know what you are doing
+    refresh_output = True
     if test_depth:
         source = depth_dir
         save_dir = depth_save_dir
@@ -42,7 +41,7 @@ def main():
     print("=> check path existence.")
     if (save_dir / "labels").exists() is False:
         (save_dir / "labels").mkdir(parents=True)
-        print("=> output path not exist. create a new one already.")
+        print("=> labels output path not exist. create a new one already.")
 
     if refresh_output:
         for path in save_dir.iterdir():
@@ -80,8 +79,9 @@ def main():
             p = Path(p)  # to Path
             save_path = str(save_dir / p.name)  # im.jpg
             txt_path = str(save_dir / 'labels' / p.stem) + ('' if dataset.mode == 'image' else f'_{frame}')  # im.txt
+            json_path = str(save_dir / 'json' / p.stem) + ".json"
             s += '%gx%g ' % im.shape[2:]  # print string
-            gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
+            # gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
             annotator = Annotator(im0, line_width=3, example=str(names))
             if len(det):
                 det[:, :4] = scale_boxes(im.shape[2:], det[:, :4], im0.shape).round()
@@ -89,8 +89,7 @@ def main():
                     n = (det[:, 5] == c).sum()  # detections per class
                     s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
                 for *xyxy, conf, cls in reversed(det):
-                    xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
-                    line = (cls, *xywh)  # label format
+                    line = (cls, *xyxy)  # label format
                     c = int(cls)  # integer class
                     label = f'{names[c]} {conf:.2f}'
                     inte_xy = label_choice(xyxy, im0, depth_file)
@@ -100,8 +99,6 @@ def main():
                         annotator.box_label(xyxy, label, color=colors(c, True))
             im0 = annotator.result()
             cv2.imwrite(save_path, im0)
-        
-        # print(f"=> {s}{'' if len(det) else '(no detections), '}{dt[1].dt * 1E3:.1f}ms")
 
     t = tuple(x.t / seen * 1E3 for x in dt)
     print(f'=> Speed: %.1fms pre-process, %.1fms inference, %.1fms NMS per image at shape {(1, 3, *imgsz)}' % t)
